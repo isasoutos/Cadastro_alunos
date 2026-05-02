@@ -1,0 +1,8 @@
+{
+  "aluno_id": "ID_INTEIRO",
+  "disciplina_id": "STRING_CODIGO",
+  "avaliacoes": {
+    "NOME_DEFINIDO_PELO_USUARIO": "VALOR_FLOAT"
+  },
+  "ultima_atualizacao": "DATA_ISO"
+}
