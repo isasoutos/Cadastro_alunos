@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_fei
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: senha
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app_python:
+    build: ./src
+    container_name: python_fei
+    depends_on:
+      - mongodb
+    stdin_open: true # Permite interagir com o terminal (input)
+    tty: true        # Mantém o terminal aberto
+    volumes:
+      - ./src:/app   # Sincroniza seus arquivos em tempo real
+
+volumes:
+  mongo_data:

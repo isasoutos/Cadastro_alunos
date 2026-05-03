@@ -1,8 +1,15 @@
 {
-  "aluno_id": "ID_INTEIRO",
-  "disciplina_id": "STRING_CODIGO",
+  "aluno_id": "123",
+  "disciplina_id": "FEI",
   "avaliacoes": {
-    "NOME_DEFINIDO_PELO_USUARIO": "VALOR_FLOAT"
+    "p1": 5.0,
+    "p2": 5.0,
+    "lab": 5.0,
+    "proj": 5.0,
+    "p3": 4.0
   },
-  "ultima_atualizacao": "DATA_ISO"
+  "media_final": 5.0,
+  "status": "Reprovado na Disciplina",
+  "precisa_p3": false,
+  "data_atualizacao": "03/05/2026 15:08"
 }
