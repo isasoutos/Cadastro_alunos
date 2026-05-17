@@ -39,11 +39,11 @@ O sistema utiliza Python para gerenciar as conexões simultâneas entre os segui
 * **Paradigma:** Orientado a Documentos (NoSQL).
 * **Justificativa:** Oferece um Esquema Flexível (Schemaless). Perfeito para armazenar notas e planos de ensino, permitindo que disciplinas salvem avaliações em formatos diferentes na mesma coleção, sem migrações complexas.
 
-### 3. Neo4j (Módulo de Regras Curriculares — Pessoa 3)
+### 3. Neo4j (Módulo de Regras Curriculares — Leonardo)
 * **Paradigma:** Orientado a Grafos (NoSQL).
 * **Justificativa:** Altamente otimizado para gerenciar relacionamentos complexos. Substitui lentos `JOINs` relacionais por navegação rápida em caminhos de nós para validar pré-requisitos encadeados.
 
-### 4. Cassandra (Módulo de Auditoria e Timeline — Pessoa 4)
+### 4. Cassandra (Módulo de Auditoria e Timeline — Renan)
 * **Paradigma:** Wide-Column / Colunar (NoSQL).
 * **Justificativa:** Projetado para altíssima escalabilidade e velocidade de escrita em séries temporais. Grava instantaneamente logs de auditoria de forma imutável, fornecendo rastreabilidade completa.
 
