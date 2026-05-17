@@ -2,6 +2,15 @@
 
 Um sistema de gestão educacional robusto desenvolvido para demonstrar o conceito prático de **Persistência Poliglota**, utilizando quatro paradigmas diferentes de bancos de dados para resolver problemas específicos e complementares de negócio dentro do mesmo ecossistema acadêmico.
 
+## 👥 Integrantes do Grupo
+* **Isabelle:** Módulo Pedagógico (MongoDB)
+* **Akira:** Módulo de Identidade (PostgreSQL)
+* **Leonardo:** Módulo de Regras Curriculares (Neo4j)
+* **Renan:** Módulo de Auditoria e Timeline (Cassandra)
+*(Nota: Lembre-se de atualizar os nomes reais da Pessoa 3 e Pessoa 4).*
+
+---
+
 ## 🎯 O Tema Escolhido
 
 No ambiente universitário, lidamos diariamente com fluxos de dados que possuem naturezas, criticidades e velocidades de alteração completamente distintas. Este projeto consolida essa dualidade através de uma arquitetura híbrida distribuída, provando que não existe um "banco de dados perfeito" universal, mas sim a ferramenta correta para cada domínio de negócio:
@@ -11,41 +20,61 @@ No ambiente universitário, lidamos diariamente com fluxos de dados que possuem 
 * **Regras de Redes Complexas:** Dependências, pré-requisitos curriculares de avanço e sugestões de trilhas de aprendizagem.
 * **Histórico Temporal de Alta Volumetria:** Trilhas imutáveis de auditoria, logs de acessos sensíveis e monitoramento de segurança.
 
+## 🐍 Linguagem de Implementação
+
+O **Python** foi a linguagem escolhida para implementar a camada middleware (orquestrador) do projeto. 
+* **Justificativa:** O Python possui um ecossistema maduro com drivers oficiais e robustos para todos os bancos modernos (como `psycopg2` para Postgres e `pymongo` para MongoDB). Ele facilita a criação de uma Interface de Linha de Comando (CLI) unificada e permite o processamento ágil da validação cruzada entre os módulos (ex: validar o relacional antes de gravar no NoSQL), integrando-se nativamente à arquitetura conteinerizada do Docker.
+
 ---
 
 ## 🏗️ Arquitetura e Tecnologias (Os 4 Bancos de Dados)
 
-O sistema utiliza **Python** como a camada middleware centralizadora (orquestrador) para conectar, processar as regras de negócio e gerenciar as conexões simultâneas entre os seguintes serviços contêinerizados via **Docker**:
+O sistema utiliza Python para gerenciar as conexões simultâneas entre os seguintes serviços:
 
 ### 1. PostgreSQL (Módulo de Identidade — Akira)
 * **Paradigma:** Relacional (SQL).
 * **Justificativa:** Focado na estrita conformidade ACID (Atomicidade, Consistência, Isolamento e Durabilidade). É o "dono" da verdade cadastral, ideal para garantir que dados fundamentais não sofram com inconsistências (como duplicidade de CPFs ou alunos sem número de matrícula).
-* **Recursos:** Implementado via Procedures/Funções armazenadas nativas (`cadastrar_aluno`, `cadastrar_professor`, `criar_disciplina`, `vincular_professor_turma`).
 
 ### 2. MongoDB (Módulo Pedagógico — Isabelle)
 * **Paradigma:** Orientado a Documentos (NoSQL).
-* **Justificativa:** Oferece um Esquema Flexível (Schemaless). Perfeito para armazenar notas e planos de ensino, permitindo que uma disciplina salve avaliações no formato `{"P1": 8.5, "Projeto": 9.0}` e outra salve apenas `{"Seminario": 10.0, "Artigo": 7.5}` na mesma coleção, sem a necessidade de migrações complexas de tabelas.
-* **Recursos:** Manipulação e gravação direta de objetos JSON complexos com controle dinâmico de médias acadêmicas e recuperação (P3).
+* **Justificativa:** Oferece um Esquema Flexível (Schemaless). Perfeito para armazenar notas e planos de ensino, permitindo que disciplinas salvem avaliações em formatos diferentes na mesma coleção, sem migrações complexas.
 
 ### 3. Neo4j (Módulo de Regras Curriculares — Pessoa 3)
 * **Paradigma:** Orientado a Grafos (NoSQL).
-* **Justificativa:** Altamente otimizado para gerenciar relacionamentos complexos. Em vez de realizar múltiplos e lentos `JOINs` relacionais para verificar pré-requisitos encadeados (ex: IA depende de Estatística, que depende de Cálculo), o Neo4j faz uma navegação rápida por caminhos de nós de forma intuitiva.
-* **Recursos:** Funções estruturadas para mapeamento de dependências (`criar_pre_requisito`), tracking de avanço (`registrar_conclusao`) e inteligência analítica (`sugerir_proximas_materias`).
+* **Justificativa:** Altamente otimizado para gerenciar relacionamentos complexos. Substitui lentos `JOINs` relacionais por navegação rápida em caminhos de nós para validar pré-requisitos encadeados.
 
 ### 4. Cassandra (Módulo de Auditoria e Timeline — Pessoa 4)
 * **Paradigma:** Wide-Column / Colunar (NoSQL).
-* **Justificativa:** Projetado para altíssima escalabilidade e velocidade extrema de escrita em séries temporais. Garante que logs de auditoria e registros de segurança sejam gravados instantaneamente de forma imutável, fornecendo rastreabilidade completa e permanente para a secretaria acadêmica.
-* **Recursos:** Centralização automática de histórico de segurança (`registrar_log_evento`, `listar_auditoria_por_aluno`, `monitorar_acesso`).
+* **Justificativa:** Projetado para altíssima escalabilidade e velocidade de escrita em séries temporais. Grava instantaneamente logs de auditoria de forma imutável, fornecendo rastreabilidade completa.
+
+---
+
+## ⚖️ Fundamentos Teóricos: Teorema CAP e Consistência
+
+O sistema lida com diferentes cenários de indisponibilidade de acordo com o Teorema CAP e princípios de consistência:
+
+* **PostgreSQL (CA):** Trabalha com **Consistência Forte (ACID)**. Em caso de falha de rede (partição), ele bloqueia gravações para evitar dados divergentes, ficando indisponível para escrita até a normalização.
+* **MongoDB (CP):** Possui **Consistência Forte por padrão no nó Primário**. Se o nó líder cair, o sistema fica temporariamente indisponível para escrita durante os segundos de eleição do novo primário.
+* **Neo4j (CP):** Trabalha com **Consistência Causal**. Se o nó líder falhar ou houver partição isolando a maioria, ele para de aceitar escritas para garantir a integridade estrutural do grafo.
+* **Cassandra (AP):** Trabalha com **Consistência Eventual Ajustável (Tunable)**. Prioriza a disponibilidade; se nós falharem, ele continua aceitando operações, sacrificando temporariamente a consistência imediata (os dados são sincronizados no background).
+
+## 🔄 Tolerância a Falhas e Replicação (Bancos NoSQL)
+
+Para os bancos não-relacionais, a arquitetura distribuída lida com instâncias indisponíveis baseada no conceito de Quórum (maioria):
+
+* **MongoDB (Replica Set):** Se o nó Primário cai, os Secundários elegem um novo líder. Em um cluster padrão de **3 instâncias, 1 pode falhar** e o sistema continuará operante e consistente.
+* **Neo4j (Causal Cluster):** Utiliza o protocolo Raft. A maioria é exigida para aceitar escritas. Em um cenário com **3 servidores Core, 1 pode falhar** sem afetar a consistência.
+* **Cassandra (Ring Topology):** Arquitetura masterless (sem líder). A tolerância depende do Fator de Replicação (RF) e do nível da query. Com `RF=3` e consistência de leitura/escrita em `QUORUM`, **1 instância pode falhar** mantendo consistência forte. Com nível `ONE`, **2 instâncias podem falhar**, mas o sistema passa a operar em consistência eventual pura.
 
 ---
 
 ## ⚙️ Funções Transversais e Integração (O Coração do Backend)
 
-O backend em Python atua interceptando as requisições e cruzando dados de todos os ecossistemas de forma integrada:
+O backend em Python atua interceptando as requisições e cruzando dados de todos os ecossistemas:
 
-1.  **Validação Cruzada de Escrita:** O sistema impede nativamente o lançamento de notas ou ementas no MongoDB se o ID do Aluno ou da Disciplina não for localizado e validado previamente na base relacional estável do PostgreSQL.
-2.  **Gerar Boletim Consolidado:** Uma única chamada unificada consome o nome e dados cadastrais no *PostgreSQL*, busca as notas flexíveis no *MongoDB*, avalia o progresso curricular no grafo do *Neo4j* e valida se existem acessos ou alterações suspeitas na timeline do *Cassandra*.
-3.  **Middleware de Log Automático (`middleware_log`):** Intercepta de forma invisível qualquer operação realizada no menu integrado e dispara uma gravação assíncrona para o Cassandra, gerando o rastro definitivo de auditoria sem a necessidade de acionamento manual em cada módulo.
+1.  **Validação Cruzada de Escrita:** Impede o lançamento de notas no MongoDB se o ID do Aluno não for validado previamente no PostgreSQL.
+2.  **Gerar Boletim Consolidado:** Uma única chamada consome o nome no *PostgreSQL*, as notas no *MongoDB*, avalia o progresso no *Neo4j* e valida acessos suspeitos no *Cassandra*.
+3.  **Middleware de Log Automático (`middleware_log`):** Intercepta de forma invisível as operações no menu integrado e dispara a gravação assíncrona para o Cassandra.
 
 ---
 
