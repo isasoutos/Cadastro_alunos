@@ -7,7 +7,6 @@ Um sistema de gestão educacional robusto desenvolvido para demonstrar o conceit
 * **Akira:** Módulo de Identidade (PostgreSQL)
 * **Leonardo:** Módulo de Regras Curriculares (Neo4j)
 * **Renan:** Módulo de Auditoria e Timeline (Cassandra)
-*(Nota: Lembre-se de atualizar os nomes reais da Pessoa 3 e Pessoa 4).*
 
 ---
 
