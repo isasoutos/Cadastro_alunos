@@ -1,5 +1,3 @@
-CREATE DATABASE sistema_academico;
-
 CREATE TABLE alunos (
     id_aluno SERIAL PRIMARY KEY,
     nome VARCHAR(150) NOT NULL,

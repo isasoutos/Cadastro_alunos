@@ -3,10 +3,10 @@ from datetime import datetime
 
 class MongoModule:
     def __init__(self):
-        self.client = MongoClient("mongodb://admin:senha@localhost:27017/")
+        # A conexão pela rede do Docker
+        self.client = MongoClient("mongodb://admin:senha@mongodb:27017/")
         self.db = self.client['sistema_escolar']
         
-        # CORREÇÃO: Definindo as duas coleções corretamente aqui no início
         self.notas_colecao = self.db['notas_alunos']
         self.planos_colecao = self.db['planos_ensino']
 
@@ -44,10 +44,11 @@ class MongoModule:
                     "data_atualizacao": datetime.now().strftime("%d/%m/%Y %H:%M")
                 }
             }
-            # Atualizado para usar notas_colecao
             self.notas_colecao.update_one(filtro, dados, upsert=True)
-        except Exception:
-            print("\n[AVISO] Banco MongoDB offline. Mostrando apenas cálculo local:")
+            
+        except Exception as e:
+            # AQUI ESTÁ A MÁGICA: Ele vai nos contar o verdadeiro motivo!
+            print(f"\n[AVISO] Banco MongoDB offline. Erro detalhado: {e}")
 
         return {"media": round(media_final, 2), "status": status, "p3": precisa_p3}
 
@@ -81,7 +82,7 @@ class MongoModule:
         return historico
 
     def atualizar_nota_especifica(self, aluno_id, disciplina_id, nova_nota):
-        """Localiza o documento correto e altera apenas um campo (ex: apenas a nota da P2)."""
+        """Localiza o documento correto e altera apenas um campo."""
         campos_atualizados = {}
         for chave, valor in nova_nota.items():
             campos_atualizados[f"notas.{chave}"] = valor

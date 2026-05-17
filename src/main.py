@@ -1,63 +1,160 @@
 import json
 from database.mongo_db import MongoModule
+from database.postgres_db import PostgresModule
 
 def exibir_menu():
-    print("\n" + "="*55)
-    print("   SISTEMA PEDAGÓGICO - FEI (MÓDULO MONGO)   ")
-    print("="*55)
-    print("1. Lançar Notas com Regras (P1, P2, Lab, Proj, P3)")
-    print("2. Lançar Notas Flexíveis (Qualquer formato)")
-    print("3. Atualizar uma Nota Específica")
-    print("4. Definir Plano de Ensino (Ementa)")
-    print("5. Buscar Histórico Escolar (Boletim do Aluno)")
-    print("0. Sair do Sistema")
-    print("="*55)
+    print("\n" + "="*60)
+    print("="*60)
+    print("1. Cadastrar Aluno")
+    print("2. Cadastrar Professor")
+    print("3. Criar Disciplina")
+    print("4. Vincular Professor à Disciplina")
+    print("5. Listar Alunos")
+    print("6. Listar Professores")
+    print("7. Listar Disciplinas")
+    print("8. Lançar Notas com Regras (P1, P2, Lab, Proj, P3)")
+    print("9. Lançar Notas Flexíveis (Qualquer formato)")
+    print("10. Atualizar uma Nota Específica")
+    print("11. Definir Plano de Ensino (Ementa)")
+    print("12. Buscar Histórico Escolar (Boletim do Aluno)") 
+    print("\n0. Sair do Sistema")
+    print("="*60)
 
 def testar_sistema():
-    db = MongoModule()
+    mongo_db = MongoModule()
+    try:
+        postgres_db = PostgresModule()
+    except Exception as e:
+        print(f"[AVISO] Não foi possível conectar ao PostgreSQL: {e}")
+        postgres_db = None
     
     while True:
         exibir_menu()
         opcao = input("Escolha uma opção: ").strip()
 
         if opcao == '0':
-            print("Encerrando o módulo MongoDB... Até logo!")
+            print("\nEncerrando o sistema integrado... Até logo!")
             break
+        elif opcao == '1':
+            print("\n--- CADASTRAR ALUNO ---")
+            nome = input("Nome do aluno: ").strip()
+            cpf = input("CPF (apenas números): ").strip()
+            nascimento = input("Data de nascimento (AAAA-MM-DD): ").strip()
+            if postgres_db:
+                msg = postgres_db.cadastrar_aluno(nome, cpf, nascimento)
+                print(f"\n>> {msg}")
+            else:
+                print("PostgreSQL offline.")
+
+        elif opcao == '2':
+            print("\n--- CADASTRAR PROFESSOR ---")
+            nome = input("Nome do professor: ").strip()
+            cpf = input("CPF (apenas números): ").strip()
+            especialidade = input("Especialidade: ").strip()
+            if postgres_db:
+                msg = postgres_db.cadastrar_professor(nome, cpf, especialidade)
+                print(f"\n>> {msg}")
+            else:
+                print("PostgreSQL offline.")
+
+        elif opcao == '3':
+            print("\n--- CRIAR DISCIPLINA ---")
+            nome = input("Nome da disciplina: ").strip()
+            codigo = input("Código da disciplina: ").strip()
+            if postgres_db:
+                msg = postgres_db.criar_disciplina(nome, codigo)
+                print(f"\n>> {msg}")
+            else:
+                print("PostgreSQL offline.")
+
+        elif opcao == '4':
+            print("\n--- VINCULAR PROFESSOR À DISCIPLINA ---")
+            try:
+                prof_id = int(input("ID do professor: "))
+                disc_id = int(input("ID da disciplina: "))
+                if postgres_db:
+                    msg = postgres_db.vincular_professor_turma(prof_id, disc_id)
+                    print(f"\n>> {msg}")
+                else:
+                    print("PostgreSQL offline.")
+            except ValueError:
+                print("[ERRO] Os IDs devem ser números inteiros.")
+
+        elif opcao == '5':
+            print("\n--- LISTA DE ALUNOS ---")
+            if postgres_db:
+                alunos = postgres_db.listar_alunos()
+                for al in alunos:
+                    print(f"ID: {al[0]} | Nome: {al[1]} | CPF: {al[2]} | Nasc: {al[3]}")
+            else:
+                print("PostgreSQL offline.")
+
+        elif opcao == '6':
+            print("\n--- LISTA DE PROFESSORES ---")
+            if postgres_db:
+                profs = postgres_db.listar_professores()
+                for prof in profs:
+                    print(f"ID: {prof[0]} | Nome: {prof[1]} | CPF: {prof[2]} | Esp: {prof[3]}")
+            else:
+                print("PostgreSQL offline.")
+
+        elif opcao == '7':
+            print("\n--- LISTA DE DISCIPLINAS ---")
+            if postgres_db:
+                discs = postgres_db.listar_disciplinas()
+                for disc in discs:
+                    print(f"ID: {disc[0]} | Nome: {disc[1]} | Código: {disc[2]}")
+            else:
+                print("PostgreSQL offline.")
 
         # ==========================================
-        # OPÇÃO 1: REGRA DE NEGÓCIO COMPLETA (P3)
+        # OPÇÕES DO MONGODB (PEDAGÓGICO COM VALIDAÇÃO)
         # ==========================================
-        elif opcao == '1':
+        elif opcao == '8':
             print("\n--- REGRA DE APROVAÇÃO (CÁLCULO AUTOMÁTICO) ---")
-            aluno = input("ID do Aluno: ").strip()
-            materia = input("Código da Disciplina: ").strip()
+            aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
             
+            # --- VALIDAÇÃO CRUZADA ---
+            if postgres_db:
+                alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
+                if aluno not in alunos_validos:
+                    print(f"\n[BLOQUEADO] Aluno ID {aluno} não encontrado no PostgreSQL.")
+                    print("Insira as notas apenas de alunos existentes na base relacional.")
+                    continue
+            
+            materia = input("Código da Disciplina: ").strip()
             try:
                 p1 = float(input("Nota P1: "))
                 p2 = float(input("Nota P2: "))
                 lab = float(input("Nota Lab: "))
                 proj = float(input("Nota Projeto: "))
                 
-                res = db.salvar_notas_com_regra(aluno, materia, p1, p2, lab, proj)
+                res = mongo_db.salvar_notas_com_regra(aluno, materia, p1, p2, lab, proj)
                 print(f"\nSTATUS: {res['status']} | MÉDIA: {res['media']}")
                 
                 if res['p3']:
-                    print("AVISO: Aluno abaixo da média 6!")
-                    if input("Lançar P3 agora? (s/n): ").lower() == 's':
+                    print("\nAVISO: Aluno abaixo da média 6!")
+                    if input("Deseja lançar a nota da P3 agora? (s/n): ").lower() == 's':
                         nota_p3 = float(input("Nota da P3: "))
-                        res_f = db.salvar_notas_com_regra(aluno, materia, p1, p2, lab, proj, nota_p3)
-                        print(f"\nSTATUS FINAL: {res_f['status']} | MÉDIA FINAL: {res_f['media']}")
+                        res_f = mongo_db.salvar_notas_com_regra(aluno, materia, p1, p2, lab, proj, nota_p3)
+                        print(f"\n--- RESULTADO FINAL APÓS P3 ---")
+                        print(f"MÉDIA FINAL: {res_f['media']}")
+                        print(f"STATUS FINAL: {res_f['status']}")
             except ValueError:
-                print("[ERRO] Digite apenas números.")
+                print("[ERRO] Utilize apenas números para as notas.")
 
-        # ==========================================
-        # OPÇÃO 2: FORMATO FLEXÍVEL (JSON DINÂMICO)
-        # ==========================================
-        elif opcao == '2':
+        elif opcao == '9':
             print("\n--- LANÇAMENTO FLEXÍVEL (SCHEAMALESS) ---")
-            aluno = input("ID do Aluno: ").strip()
-            materia = input("Código da Disciplina: ").strip()
+            aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
             
+            # --- VALIDAÇÃO CRUZADA ---
+            if postgres_db:
+                alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
+                if aluno not in alunos_validos:
+                    print(f"\n[BLOQUEADO] Aluno ID {aluno} não encontrado no PostgreSQL.")
+                    continue
+                    
+            materia = input("Código da Disciplina: ").strip()
             notas_flex = {}
             print("Digite os nomes das avaliações e as notas (Deixe o nome em branco para parar):")
             while True:
@@ -71,21 +168,25 @@ def testar_sistema():
                     print("Nota inválida! Tente novamente.")
             
             if notas_flex:
-                resultado = db.lancar_notas(aluno, materia, notas_flex)
+                resultado = mongo_db.lancar_notas(aluno, materia, notas_flex)
                 print(f"\n>> {resultado['mensagem']}")
 
-        # ==========================================
-        # OPÇÃO 3: ATUALIZAR NOTA ESPECÍFICA
-        # ==========================================
-        elif opcao == '3':
+        elif opcao == '10':
             print("\n--- ATUALIZAR NOTA ESPECÍFICA ---")
-            aluno = input("ID do Aluno: ").strip()
+            aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
+            
+            # --- VALIDAÇÃO CRUZADA ---
+            if postgres_db:
+                alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
+                if aluno not in alunos_validos:
+                    print(f"\n[BLOQUEADO] Aluno ID {aluno} não encontrado no PostgreSQL.")
+                    continue
+                    
             materia = input("Código da Disciplina: ").strip()
             nome_aval = input("Qual avaliação deseja alterar? (ex: P2): ").strip()
-            
             try:
                 nova_nota = float(input("Digite a nova nota: "))
-                resultado = db.atualizar_nota_especifica(aluno, materia, {nome_aval: nova_nota})
+                resultado = mongo_db.atualizar_nota_especifica(aluno, materia, {nome_aval: nova_nota})
                 if resultado['sucesso']:
                     print(f"\n>> {resultado['mensagem']}")
                 else:
@@ -93,10 +194,7 @@ def testar_sistema():
             except ValueError:
                 print("[ERRO] Nota inválida!")
 
-        # ==========================================
-        # OPÇÃO 4: PLANO DE ENSINO (EMENTA)
-        # ==========================================
-        elif opcao == '4':
+        elif opcao == '11':
             print("\n--- DEFINIR PLANO DE ENSINO ---")
             materia = input("Código da Disciplina: ").strip()
             print("Digite os tópicos da ementa (Deixe em branco para finalizar):")
@@ -108,26 +206,22 @@ def testar_sistema():
                 ementa.append(topico)
             
             if ementa:
-                resultado = db.definir_plano_ensino(materia, ementa)
+                resultado = mongo_db.definir_plano_ensino(materia, ementa)
                 print(f"\n>> {resultado['mensagem']}")
 
-        # ==========================================
-        # OPÇÃO 5: BUSCAR HISTÓRICO (BOLETIM)
-        # ==========================================
-        elif opcao == '5':
+        elif opcao == '12':
             print("\n--- CONSULTAR BOLETIM ---")
             aluno = input("ID do Aluno: ").strip()
-            historico = db.buscar_historico_aluno(aluno)
+            historico = mongo_db.buscar_historico_aluno(aluno)
             
             if not historico:
-                print("Nenhum registro encontrado para este aluno.")
+                print("Nenhum registro encontrado para este aluno no MongoDB.")
             else:
                 print("\nRegistros encontrados:")
-                # Imprime o JSON de forma bonita e indentada
                 print(json.dumps(historico, indent=4, ensure_ascii=False))
 
         else:
-            print("[ERRO] Opção inválida. Tente novamente.")
+            print("\n[ERRO] Opção inválida. Tente novamente.")
 
 if __name__ == "__main__":
     testar_sistema()
