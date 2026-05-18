@@ -7,7 +7,7 @@ from database.postgres_db import PostgresModule
 # NEO4J
 # ==========================================
 
-from neo4j_db import (
+from database.neo4j_db import (
     criar_pre_requisito,
     sugerir_proximas_materias
 )
@@ -449,17 +449,21 @@ def testar_sistema():
                     {nome_aval: nova_nota}
                 )
 
-                print(f"\n>> {resultado['mensagem']}")
-
-                registrar_log_evento(
-                    aluno_id=ALUNO_AUDITORIA,
-                    usuario_id=USUARIO_ADMIN,
-                    acao="ALTERAR_NOTA",
-                    detalhe=f"{nome_aval} alterada para {nova_nota}"
-                )
-
+                # Verifica se a chave "sucesso" é True
+                if resultado.get("sucesso"):
+                    print(f"\n>> {resultado['mensagem']}")
+                    
+                    registrar_log_evento(
+                        aluno_id=ALUNO_AUDITORIA,
+                        usuario_id=USUARIO_ADMIN,
+                        acao="ALTERAR_NOTA",
+                        detalhe=f"{nome_aval} alterada para {nova_nota}"
+                    )
+                else:
+                    # Se não deu certo, imprime a chave "erro"
+                    print(f"\n[ERRO] {resultado['erro']}")
+                    
             except ValueError:
-
                 print("[ERRO] Nota inválida.")
 
         # ==========================================

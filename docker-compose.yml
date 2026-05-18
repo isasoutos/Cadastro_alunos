@@ -36,6 +36,9 @@ services:
       - "9042:9042"
     environment:
       CASSANDRA_CLUSTER_NAME: FEICluster
+      # Colocando o Cassandra de dieta (Limite de 512MB de RAM)
+      MAX_HEAP_SIZE: "512M"
+      HEAP_NEWSIZE: "128M"
     volumes:
       - cassandra_data:/var/lib/cassandra
       
