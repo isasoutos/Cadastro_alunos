@@ -106,13 +106,19 @@ docker-compose run app_python python main.py
 ## 📂 Estrutura do Repositório
 
 ```text
+├── cassandra.sql            # Consultas e estrutura nativa do Cassandra (Documentação/Backup)
 ├── docker-compose.yml       # Orquestração de todos os containers e volumes do ecossistema
 ├── init.sql                 # Script de inicialização automática de tabelas e funções do Postgres
+├── notas.json               # Estrutura JSON de exemplo para o MongoDB (Documentação)
+├── queries.cypher           # Comandos nativos de criação de nós do Neo4j (Documentação/Backup)
 ├── README.md                # Documentação técnica completa do sistema
 └── src/
     ├── Dockerfile           # Definição da imagem isolada para a aplicação Python (3.12-slim)
-    ├── main.py              # Interface de Linha de Comando (CLI) centralizada com 12 opções
-    ├── requirements.txt     # Dependências externas do projeto (psycopg2-binary, pymongo)
+    ├── main.py              # Interface de Linha de Comando (CLI) centralizada com 16 opções
+    ├── requirements.txt     # Dependências (psycopg2-binary, pymongo, cassandra-driver, neo4j)
     └── database/
+        ├── __init__.py      # Arquivo que transforma a pasta em um módulo Python reconhecido
+        ├── cassandra_db.py  # Conexão e regras de log de auditoria no formato Colunar
         ├── mongo_db.py      # Conexão e regras de negócio orientadas a documentos
+        ├── neo4j_db.py      # Conexão e lógica de relacionamentos em Grafos
         └── postgres_db.py   # Conexão e injeção de parâmetros nas funções relacionais
