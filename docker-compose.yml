@@ -38,6 +38,18 @@ services:
       CASSANDRA_CLUSTER_NAME: FEICluster
     volumes:
       - cassandra_data:/var/lib/cassandra
+      
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j_fei
+    restart: always
+    ports:
+      - "7474:7474" 
+      - "7687:7687" 
+    environment:
+      - NEO4J_AUTH=neo4j/senha123 
+    volumes:
+      - neo4j_data:/data
 
   app_python:
     build: ./src
@@ -46,6 +58,7 @@ services:
       - mongodb
       - postgres
       - cassandra
+      - neo4j 
     stdin_open: true
     tty: true
     volumes:
@@ -55,3 +68,4 @@ volumes:
   mongo_data:
   pg_data:
   cassandra_data:
+  neo4j_data: 
