@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   mongodb:
     image: mongo:latest
     container_name: mongodb_fei
@@ -25,8 +26,18 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      # Isso faz o Docker rodar o SQL do Akira automaticamente!
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra_fei
+    restart: always
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: FEICluster
+    volumes:
+      - cassandra_data:/var/lib/cassandra
 
   app_python:
     build: ./src
@@ -34,6 +45,7 @@ services:
     depends_on:
       - mongodb
       - postgres
+      - cassandra
     stdin_open: true
     tty: true
     volumes:
@@ -42,3 +54,4 @@ services:
 volumes:
   mongo_data:
   pg_data:
+  cassandra_data:
