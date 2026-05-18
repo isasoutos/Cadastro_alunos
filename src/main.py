@@ -1,6 +1,7 @@
 import json
 from database.mongo_db import MongoModule
 from database.postgres_db import PostgresModule
+from neo4j_db import criar_pre_requisito, sugerir_proximas_materias
 
 def exibir_menu():
     print("\n" + "="*60)
@@ -17,6 +18,8 @@ def exibir_menu():
     print("10. Atualizar uma Nota Específica")
     print("11. Definir Plano de Ensino (Ementa)")
     print("12. Buscar Histórico Escolar (Boletim do Aluno)") 
+    print("13. Configurar Pré-Requisito de Disciplina")
+    print("14. Ver Matérias Sugeridas")
     print("\n0. Sair do Sistema")
     print("="*60)
 
@@ -107,14 +110,10 @@ def testar_sistema():
             else:
                 print("PostgreSQL offline.")
 
-        # ==========================================
-        # OPÇÕES DO MONGODB (PEDAGÓGICO COM VALIDAÇÃO)
-        # ==========================================
         elif opcao == '8':
             print("\n--- REGRA DE APROVAÇÃO (CÁLCULO AUTOMÁTICO) ---")
             aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
             
-            # --- VALIDAÇÃO CRUZADA ---
             if postgres_db:
                 alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
                 if aluno not in alunos_validos:
@@ -147,7 +146,6 @@ def testar_sistema():
             print("\n--- LANÇAMENTO FLEXÍVEL (SCHEAMALESS) ---")
             aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
             
-            # --- VALIDAÇÃO CRUZADA ---
             if postgres_db:
                 alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
                 if aluno not in alunos_validos:
@@ -155,7 +153,7 @@ def testar_sistema():
                     continue
                     
             materia = input("Código da Disciplina: ").strip()
-            notas_flex = {}
+            notes_flex = {}
             print("Digite os nomes das avaliações e as notas (Deixe o nome em branco para parar):")
             while True:
                 nome_aval = input("Nome da Avaliação (ex: Atividade_Extra): ").strip()
@@ -163,19 +161,18 @@ def testar_sistema():
                     break
                 try:
                     nota_aval = float(input(f"Nota para {nome_aval}: "))
-                    notas_flex[nome_aval] = nota_aval
+                    notes_flex[nome_aval] = nota_aval
                 except ValueError:
                     print("Nota inválida! Tente novamente.")
             
-            if notas_flex:
-                resultado = mongo_db.lancar_notas(aluno, materia, notas_flex)
+            if notes_flex:
+                resultado = mongo_db.lancar_notas(aluno, materia, notes_flex)
                 print(f"\n>> {resultado['mensagem']}")
 
         elif opcao == '10':
             print("\n--- ATUALIZAR NOTA ESPECÍFICA ---")
             aluno = input("ID do Aluno (Cadastrado no Postgres): ").strip()
             
-            # --- VALIDAÇÃO CRUZADA ---
             if postgres_db:
                 alunos_validos = [str(al[0]) for al in postgres_db.listar_alunos()]
                 if aluno not in alunos_validos:
@@ -219,6 +216,27 @@ def testar_sistema():
             else:
                 print("\nRegistros encontrados:")
                 print(json.dumps(historico, indent=4, ensure_ascii=False))
+
+        elif opcao == '13':
+            print("\n--- CONFIGURAR PRÉ-REQUISITO ---")
+            origem = input("Código da disciplina de origem: ").strip()
+            destino = input("Código da disciplina de destino: ").strip()
+            try:
+                criar_pre_requisito(origem, destino)
+                print("\n>> Pré-requisito configurado com sucesso.")
+            except Exception as e:
+                print(f"[ERRO] Ocorreu um erro: {e}")
+
+        elif opcao == '14':
+            print("\n--- MATÉRIAS SUGERIDAS ---")
+            aluno = input("ID do Aluno: ").strip()
+            try:
+                sugestoes = sugerir_proximas_materias(aluno)
+                print("\nMatérias recomendadas:")
+                for sg in sugestoes:
+                    print(f"Código: {sg['codigo']} | Nome: {sg['nome']}")
+            except Exception as e:
+                print(f"[ERRO] Ocorreu um erro: {e}")
 
         else:
             print("\n[ERRO] Opção inválida. Tente novamente.")
