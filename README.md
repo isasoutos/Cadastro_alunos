@@ -104,7 +104,7 @@ docker-compose run app_python python main.py
 
 ---
 
-##💻 Acessando os Bancos e Tabelas pelo Terminal (CLI)
+## 💻 Acessando os Bancos e Tabelas pelo Terminal (CLI)
 Após usar o menu em Python para popular o sistema, você pode auditar as tabelas e os dados acessando os contêineres diretamente.
 
 ⚠️ Atenção usuários de Windows: Se você estiver utilizando o terminal do Git Bash, é necessário adicionar a palavra winpty  antes de qualquer comando docker exec para que o terminal interativo funcione corretamente (Exemplo: winpty docker exec -it ...).
