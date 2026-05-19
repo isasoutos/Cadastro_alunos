@@ -103,6 +103,165 @@ docker-compose run app_python python main.py
 💡 **Dica para parar de rodar:** Quando terminar de testar, digite `0` no menu para sair. Para desligar os bancos de dados e limpar o terminal, rode: `docker-compose down`
 
 ---
+
+💻 Acessando os Bancos e Tabelas pelo Terminal (CLI)
+Após usar o menu em Python para popular o sistema, você pode auditar as tabelas e os dados acessando os contêineres diretamente.
+
+⚠️ Atenção usuários de Windows: Se você estiver utilizando o terminal do Git Bash, é necessário adicionar a palavra winpty  antes de qualquer comando docker exec para que o terminal interativo funcione corretamente (Exemplo: winpty docker exec -it ...).
+
+---
+
+🐘 PostgreSQL (Cadastros Base)
+Conectar ao banco de dados:
+
+```bash
+docker exec -it postgres_fei psql -U postgres -d sistema_academico
+(Quando solicitado, digite a senha AH6033 — os caracteres ficam totalmente invisíveis por segurança).
+````
+Listar todas as tabelas existentes:
+
+```SQL
+\dt
+```
+
+Listar e Estruturar as Tabelas
+Ver a lista de todas as tabelas criadas:
+
+```SQL
+\dt
+```
+
+Ver a estrutura de uma tabela específica (quais são as colunas e tipos de dados):
+
+```SQL
+\d alunos
+\d professores
+\d disciplinas
+```
+
+Códigos para Acessar os Dados (Os SELECTs)
+Lembre-se de sempre colocar o ponto e vírgula (;) no final de cada comando!
+
+Ver todos os Alunos cadastrados:
+
+```SQL
+SELECT * FROM alunos;
+```
+
+Ver todos os Professores cadastrados:
+
+```SQL
+SELECT * FROM professores;
+```
+
+Ver todas as Disciplinas cadastradas:
+
+```SQL
+SELECT * FROM disciplinas;
+```
+
+Encerrar a sessão e sair do contêiner:
+
+```SQL
+\q
+```
+
+--- 
+
+🍃 MongoDB (Notas e Planos de Ensino)
+Conectar ao banco de dados:
+
+```bash
+docker exec -it mongodb_fei mongosh -u admin -p admin
+```
+
+Selecionar o banco de dados do sistema:
+
+```JavaScript
+use sistema_escolar
+```
+
+Listar as coleções (equivalente às tabelas):
+
+```JavaScript
+show collections
+```
+
+Visualizar as notas salvas com formatação estruturada (JSON):
+
+```JavaScript
+db.notas_alunos.find().pretty()
+```
+
+Encerrar a sessão e sair do contêiner:
+
+```JavaScript
+exit
+```
+
+---
+
+🕸️ Neo4j (Relacionamentos e Matrículas)
+Conectar ao banco de dados:
+
+```bash
+docker exec -it neo4j_fei cypher-shell -u neo4j -p senha123
+```
+
+Visualizar todos os nós de Alunos cadastrados:
+
+```Cypher
+MATCH (a:Aluno) RETURN a;
+```
+
+Visualizar todos os relacionamentos de matrículas ativos:
+
+```Cypher
+MATCH (a:Aluno)-[r:CURSA]->(d:Disciplina) RETURN a.nome, d.nome;
+```
+
+Encerrar a sessão e sair do contêiner:
+
+```Cypher
+:exit
+```
+(Nota: O comando de saída do Neo4j obrigatoriamente começa com dois-pontos).
+
+---
+
+👁️ Cassandra (Logs de Auditoria)
+Conectar ao banco de dados:
+
+```bash
+docker exec -it cassandra_fei cqlsh
+```
+
+Selecionar o Keyspace (banco de dados) do sistema:
+
+```SQL
+USE sistema_auditoria;
+```
+
+Listar as tabelas criadas no Keyspace:
+
+```SQL
+DESCRIBE TABLES;
+```
+
+Visualizar toda a trilha temporal de logs e eventos:
+
+```SQL
+SELECT * FROM logs_eventos;
+```
+
+Encerrar a sessão e sair do contêiner:
+
+```SQL
+exit
+```
+
+---
+
 ## 📂 Estrutura do Repositório
 
 ```text
