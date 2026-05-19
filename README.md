@@ -116,8 +116,9 @@ Conectar ao banco de dados:
 
 ```bash
 docker exec -it postgres_fei psql -U postgres -d sistema_academico
+```
 (Quando solicitado, digite a senha AH6033 — os caracteres ficam totalmente invisíveis por segurança).
-````
+
 Listar todas as tabelas existentes:
 
 ```SQL
