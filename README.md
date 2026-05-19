@@ -172,7 +172,7 @@ Encerrar a sessão e sair do contêiner:
 Conectar ao banco de dados:
 
 ```bash
-docker exec -it mongodb_fei mongosh -u admin -p admin
+docker exec -it mongodb_fei mongosh -u admin -p senha
 ```
 
 Selecionar o banco de dados do sistema:
